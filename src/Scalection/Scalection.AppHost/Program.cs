@@ -1,10 +1,11 @@
 var builder = DistributedApplication.CreateBuilder(args);
 
-var apiService = builder.AddProject<Projects.Scalection_ApiService>("apiservice");
+var sqldb = builder.AddSqlServer("sqlserver")
+                   .PublishAsAzureSqlDatabase()
+                   .AddDatabase("sqldb");
 
-var sqlServer = builder.AddSqlServer("sqlserver")
-                       .PublishAsAzureSqlDatabase()
-                       .AddDatabase("sqldb");
+var apiService = builder.AddProject<Projects.Scalection_ApiService>("apiservice")
+                        .WithReference(sqldb);
 
 builder.AddProject<Projects.Scalection_Web>("webfrontend")
     .WithExternalHttpEndpoints()
