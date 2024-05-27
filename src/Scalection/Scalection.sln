@@ -2,13 +2,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.34916.146
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scalection.AppHost", "Scalection.AppHost\Scalection.AppHost.csproj", "{A3198158-A57B-45C4-911A-03DA156E1521}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scalection.AppHost", "Scalection.AppHost\Scalection.AppHost.csproj", "{A3198158-A57B-45C4-911A-03DA156E1521}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scalection.ServiceDefaults", "Scalection.ServiceDefaults\Scalection.ServiceDefaults.csproj", "{64C20B6B-9F1B-40D6-BA97-208CFC548E95}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scalection.ApiService", "Scalection.ApiService\Scalection.ApiService.csproj", "{4084C85C-4EFD-48DD-8B73-1598FD22B65D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scalection.Web", "Scalection.Web\Scalection.Web.csproj", "{425B7622-D7AF-41E9-81E0-A8E96BD1045A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scalection.MigrationService", "Scalection.MigrationService\Scalection.MigrationService.csproj", "{8EAF1DC5-471C-4351-A28E-2001592CAD15}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -28,10 +28,10 @@ Global
 		{4084C85C-4EFD-48DD-8B73-1598FD22B65D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4084C85C-4EFD-48DD-8B73-1598FD22B65D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4084C85C-4EFD-48DD-8B73-1598FD22B65D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{425B7622-D7AF-41E9-81E0-A8E96BD1045A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{425B7622-D7AF-41E9-81E0-A8E96BD1045A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{425B7622-D7AF-41E9-81E0-A8E96BD1045A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{425B7622-D7AF-41E9-81E0-A8E96BD1045A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8EAF1DC5-471C-4351-A28E-2001592CAD15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8EAF1DC5-471C-4351-A28E-2001592CAD15}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8EAF1DC5-471C-4351-A28E-2001592CAD15}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8EAF1DC5-471C-4351-A28E-2001592CAD15}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

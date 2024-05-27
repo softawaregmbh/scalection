@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Scalection.ApiService\Scalection.ApiService.csproj" />
-    <ProjectReference Include="..\Scalection.Web\Scalection.Web.csproj" />
+    <ProjectReference Include="..\Scalection.MigrationService\Scalection.MigrationService.csproj" />
   </ItemGroup>
 
   <ItemGroup>
