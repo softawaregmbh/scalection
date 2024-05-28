@@ -21,6 +21,19 @@ app.MapGet("/election", async (ScalectionContext context) =>
     return await context.Elections.ToListAsync();
 });
 
+app.MapGet("/parties", async (ScalectionContext context) =>
+{
+    return await context.Parties
+        .Include(p => p.Candidates)
+        .ToListAsync();
+});
+
+app.MapPost("/vote", async (ScalectionContext context) =>
+{
+    // TODO: Implement vote handling
+});
+
+
 app.MapDefaultEndpoints();
 
 app.Run();

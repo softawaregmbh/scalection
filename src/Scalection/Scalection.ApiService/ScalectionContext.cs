@@ -7,6 +7,7 @@ namespace Scalection.ApiService
     {
         public DbSet<Election> Elections { get; set; }
         public DbSet<Party> Parties { get; set; }
+        public DbSet<Candidate> Candidates { get; set; }
 
         public ScalectionContext(DbContextOptions<ScalectionContext> options)
             : base(options)
@@ -24,6 +25,41 @@ namespace Scalection.ApiService
                 .HasOne(e => e.Election)
                 .WithMany()
                 .HasForeignKey(e => e.ElectionId);
+            modelBuilder.Entity<Party>()
+                .HasMany(e => e.Candidates)
+                .WithOne()
+                .HasForeignKey(e => e.PartyId);
+
+            modelBuilder.Entity<Candidate>().HasKey(e => e.CandidateId);
+
+            modelBuilder.Entity<ElectionDistrict>().HasKey(e => e.ElectionDistrictId);
+            modelBuilder.Entity<ElectionDistrict>()
+                .HasOne<Election>()
+                .WithMany()
+                .HasForeignKey(e => e.ElectionId);
+
+            modelBuilder.Entity<Voter>().HasKey(e => e.VoterId);
+            modelBuilder.Entity<Voter>()
+                .HasOne<ElectionDistrict>()
+                .WithMany()
+                .HasForeignKey(e => e.ElectionDistrictId);
+
+            modelBuilder.Entity<Vote>().HasKey(e => e.VoteId);
+            modelBuilder.Entity<Vote>()
+                .HasOne<ElectionDistrict>()
+                .WithMany()
+                .HasForeignKey(e => e.ElectionDistrictId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Vote>()
+                .HasOne<Party>()
+                .WithMany()
+                .HasForeignKey(e => e.PartyId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Vote>()
+                .HasOne<Candidate>()
+                .WithMany()
+                .HasForeignKey(e => e.CandidateId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

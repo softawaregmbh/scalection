@@ -74,6 +74,36 @@ public class Worker(
             ElectionId = Guid.NewGuid(),
             Name = "EU Wahl 2024",
         };
+        Party partyA = new()
+        {
+            PartyId = Guid.NewGuid(),
+            Name = "Party A",
+            ElectionId = election.ElectionId,
+        };
+        Party partyB = new()
+        {
+            PartyId = Guid.NewGuid(),
+            Name = "Party B",
+            ElectionId = election.ElectionId,
+        };
+        Candidate candidateA1 = new()
+        {
+            CandidateId = Guid.NewGuid(),
+            Name = "Candidate A1",
+            PartyId = partyA.PartyId,
+        };
+        Candidate candidateA2 = new()
+        {
+            CandidateId = Guid.NewGuid(),
+            Name = "Candidate A2",
+            PartyId = partyA.PartyId,
+        };
+        Candidate candidateB1 = new()
+        {
+            CandidateId = Guid.NewGuid(),
+            Name = "Candidate B1",
+            PartyId = partyB.PartyId,
+        };
 
         var strategy = dbContext.Database.CreateExecutionStrategy();
         await strategy.ExecuteAsync(async () =>
@@ -81,6 +111,11 @@ public class Worker(
             // Seed the database
             await using var transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
             await dbContext.Elections.AddAsync(election, cancellationToken);
+            await dbContext.Parties.AddAsync(partyA, cancellationToken);
+            await dbContext.Parties.AddAsync(partyB, cancellationToken);
+            await dbContext.Candidates.AddAsync(candidateA1, cancellationToken);
+            await dbContext.Candidates.AddAsync(candidateA2, cancellationToken);
+            await dbContext.Candidates.AddAsync(candidateB1, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         });

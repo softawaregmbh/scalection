@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Scalection.ApiService;
 
@@ -11,9 +12,11 @@ using Scalection.ApiService;
 namespace Scalection.ApiService.Migrations
 {
     [DbContext(typeof(ScalectionContext))]
-    partial class ScalectionContextModelSnapshot : ModelSnapshot
+    [Migration("20240528160715_AddRemainingModels")]
+    partial class AddRemainingModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -12,5 +12,7 @@ namespace Scalection.ApiService.Models
         public Guid ElectionId { get; set; }
 
         public Election? Election { get; set; }
+
+        public ICollection<Candidate> Candidates { get; } = new List<Candidate>();
     }
 }
