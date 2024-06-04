@@ -8,13 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.4">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Scalection.Data.EF\Scalection.Data.EF.csproj" />
     <ProjectReference Include="..\Scalection.ServiceDefaults\Scalection.ServiceDefaults.csproj" />
   </ItemGroup>
 

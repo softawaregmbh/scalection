@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Scalection.ApiService;
+using Scalection.Data.EF;
 
 var builder = WebApplication.CreateBuilder(args);
 

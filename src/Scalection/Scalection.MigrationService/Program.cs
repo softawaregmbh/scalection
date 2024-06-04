@@ -1,4 +1,4 @@
-using Scalection.ApiService;
+using Scalection.Data.EF;
 using Scalection.MigrationService;
 
 var builder = Host.CreateApplicationBuilder(args);

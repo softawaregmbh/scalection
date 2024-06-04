@@ -1,4 +1,4 @@
-﻿namespace Scalection.ApiService.Models
+﻿namespace Scalection.Data.EF.Models
 {
     public class Vote
     {
