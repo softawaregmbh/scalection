@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Scalection.ApiService.Models
+namespace Scalection.Data.EF.Models
 {
     public class Election
     {

@@ -5,11 +5,10 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Scalection.ApiService;
 
 #nullable disable
 
-namespace Scalection.ApiService.Migrations
+namespace Scalection.Data.EF.Migrations
 {
     [DbContext(typeof(ScalectionContext))]
     [Migration("20240527100453_AddPartyAndElection")]

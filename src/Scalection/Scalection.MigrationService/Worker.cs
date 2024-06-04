@@ -5,8 +5,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 
 using OpenTelemetry.Trace;
-using Scalection.ApiService;
-using Scalection.ApiService.Models;
+using Scalection.Data.EF;
+using Scalection.Data.EF.Models;
 
 namespace Scalection.MigrationService;
 

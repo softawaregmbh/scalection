@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Scalection.ApiService\Scalection.ApiService.csproj" />
+    <ProjectReference Include="..\Scalection.Data.EF\Scalection.Data.EF.csproj" />
     <ProjectReference Include="..\Scalection.ServiceDefaults\Scalection.ServiceDefaults.csproj" />
   </ItemGroup>
 </Project>

@@ -1,9 +1,8 @@
-﻿using System;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Scalection.ApiService.Migrations
+namespace Scalection.Data.EF.Migrations
 {
     /// <inheritdoc />
     public partial class AddPartyAndElection : Migration

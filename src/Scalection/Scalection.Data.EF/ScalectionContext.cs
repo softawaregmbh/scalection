@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Scalection.ApiService.Models;
+using Scalection.Data.EF.Models;
 
-namespace Scalection.ApiService
+namespace Scalection.Data.EF
 {
     public class ScalectionContext : DbContext
     {

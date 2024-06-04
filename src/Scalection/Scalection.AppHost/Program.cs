@@ -5,9 +5,10 @@ var sqldb = builder.AddSqlServer("sqlserver")
                    .AddDatabase("sqldb");
 
 builder.AddProject<Projects.Scalection_ApiService>("apiservice")
-    .WithReference(sqldb);
+    .WithReference(sqldb)
+    .WithExternalHttpEndpoints();
 
-builder.AddProject<Projects.Scalection_MigrationService>("scalection-migrationservice")
+builder.AddProject<Projects.Scalection_MigrationService>("migrationservice")
     .WithReference(sqldb);
 
 builder.Build().Run();
