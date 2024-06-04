@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -12,6 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Scalection.ApiService\Scalection.ApiService.csproj" />
     <ProjectReference Include="..\Scalection.MigrationService\Scalection.MigrationService.csproj" />
+    <ProjectReference Include="..\Scalection.ServiceDefaults\Scalection.ServiceDefaults.csproj" IsAspireProjectResource="false" />
   </ItemGroup>
 
   <ItemGroup>

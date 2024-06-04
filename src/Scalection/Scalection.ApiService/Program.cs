@@ -1,12 +1,13 @@
 using Microsoft.EntityFrameworkCore;
 using Scalection.Data.EF;
+using Scalection.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add service defaults & Aspire components.
 builder.AddServiceDefaults();
 
-builder.AddSqlServerDbContext<ScalectionContext>("sqldb");
+builder.AddSqlServerDbContext<ScalectionContext>(ServiceDiscovery.SqlDB);
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
