@@ -10,7 +10,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scalection.ApiService", "Sc
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scalection.MigrationService", "Scalection.MigrationService\Scalection.MigrationService.csproj", "{8EAF1DC5-471C-4351-A28E-2001592CAD15}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scalection.Data.EF", "Scalection.Data.EF\Scalection.Data.EF.csproj", "{AC448A10-2F86-473F-B463-C62A801F9742}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Scalection.Data.EF", "Scalection.Data.EF\Scalection.Data.EF.csproj", "{AC448A10-2F86-473F-B463-C62A801F9742}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

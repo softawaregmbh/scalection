@@ -45,6 +45,10 @@ namespace Scalection.Data.EF
             modelBuilder.Entity<Voter>().HasKey(e => e.VoterId);
             modelBuilder.Entity<Voter>().Property(e => e.VoterId).ValueGeneratedNever();
             modelBuilder.Entity<Voter>()
+                .HasOne<Election>()
+                .WithMany()
+                .HasForeignKey(e => e.ElectionId);
+            modelBuilder.Entity<Voter>()
                 .HasOne<ElectionDistrict>()
                 .WithMany()
                 .HasForeignKey(e => e.ElectionDistrictId);

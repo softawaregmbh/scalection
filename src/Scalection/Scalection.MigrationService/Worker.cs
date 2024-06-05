@@ -15,8 +15,6 @@ public class Worker(
     IServiceProvider serviceProvider,
     IHostApplicationLifetime hostApplicationLifetime) : BackgroundService
 {
-    private static readonly Guid ElectionId = Guid.Parse("AF555808-063A-4EEB-9EB2-77090A2BFF42");
-
     public const string ActivitySourceName = "Migrations";
     private static readonly ActivitySource s_activitySource = new(ActivitySourceName);
 
@@ -76,7 +74,7 @@ public class Worker(
     {
         Election election = new()
         {
-            ElectionId = ElectionId,
+            ElectionId = Election.DemoElectionId,
             Name = "EU Wahl 2024",
         };
         Party partyA = new()
@@ -125,6 +123,12 @@ public class Worker(
 
             await dbContext.SaveChangesAsync(cancellationToken);
 
+#if (DEBUG)
+            int numberOfVoters = 10_000;
+#else
+            int numberOfVoters = 10_000_000;
+#endif
+
             await dbContext.Database.ExecuteSqlRawAsync("""
                 delete from Votes;
                 delete from Voters;
@@ -134,11 +138,11 @@ public class Worker(
                 select value, @p0, 'District ' + CONVERT(varchar(5), value)
                 from GENERATE_SERIES(1, 10000);
 
-                insert into Voters(VoterId, ElectionDistrictId, Voted)
-                select value, (value % 10000) + 1, 0
-                from GENERATE_SERIES(1, 10000000);
+                insert into Voters(VoterId, ElectionId, ElectionDistrictId, Voted)
+                select value, @p0, (value % 10000) + 1, 0
+                from GENERATE_SERIES(1, @p1);
                 """,
-                [ElectionId],
+                [election.ElectionId, numberOfVoters],
                 cancellationToken);
 
             await transaction.CommitAsync(cancellationToken);
@@ -155,7 +159,7 @@ public class Worker(
             }
             else
             {
-                dbSet.Update(entity);
+                dbSet.Entry(dbEntity).CurrentValues.SetValues(entity);
             }
         }
     }
