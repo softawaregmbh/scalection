@@ -42,6 +42,12 @@ resource sqlDatabase_UE3hbDaNi 'Microsoft.Sql/servers/databases@2020-11-01-previ
   parent: sqlServer_YFcCarAEq
   name: 'sqldb'
   location: location
+  sku: {
+    name: 'HS_S_Gen5',
+    tier: 'Hyperscale',
+    family: 'Gen5',
+    capacity: 8
+  }
   properties: {
   }
 }

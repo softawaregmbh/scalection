@@ -4,7 +4,7 @@
     {
         public Guid VoteId { get; set; }
 
-        public Guid ElectionDistrictId { get; set; }
+        public long ElectionDistrictId { get; set; }
 
         public Guid PartyId { get; set; }
 

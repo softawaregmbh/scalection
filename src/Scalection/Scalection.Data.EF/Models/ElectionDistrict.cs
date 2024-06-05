@@ -1,9 +1,14 @@
-﻿namespace Scalection.Data.EF.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Scalection.Data.EF.Models
 {
     public class ElectionDistrict
     {
-        public Guid ElectionDistrictId { get; set; }
+        public long ElectionDistrictId { get; set; }
 
         public Guid ElectionId { get; set; }
+
+        [Required]
+        public required string Name { get; set; }
     }
 }

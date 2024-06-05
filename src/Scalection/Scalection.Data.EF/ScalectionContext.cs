@@ -8,6 +8,9 @@ namespace Scalection.Data.EF
         public DbSet<Election> Elections { get; set; }
         public DbSet<Party> Parties { get; set; }
         public DbSet<Candidate> Candidates { get; set; }
+        public DbSet<ElectionDistrict> ElectionDistricts { get; set; }
+        public DbSet<Voter> Voters { get; set; }
+        public DbSet<Vote> Votes { get; set; }
 
         public ScalectionContext(DbContextOptions<ScalectionContext> options)
             : base(options)
@@ -33,12 +36,14 @@ namespace Scalection.Data.EF
             modelBuilder.Entity<Candidate>().HasKey(e => e.CandidateId);
 
             modelBuilder.Entity<ElectionDistrict>().HasKey(e => e.ElectionDistrictId);
+            modelBuilder.Entity<ElectionDistrict>().Property(e => e.ElectionDistrictId).ValueGeneratedNever();
             modelBuilder.Entity<ElectionDistrict>()
                 .HasOne<Election>()
                 .WithMany()
                 .HasForeignKey(e => e.ElectionId);
 
             modelBuilder.Entity<Voter>().HasKey(e => e.VoterId);
+            modelBuilder.Entity<Voter>().Property(e => e.VoterId).ValueGeneratedNever();
             modelBuilder.Entity<Voter>()
                 .HasOne<ElectionDistrict>()
                 .WithMany()

@@ -19,13 +19,29 @@ app.UseExceptionHandler();
 
 app.MapGet("/election", async (ScalectionContext context) =>
 {
-    return await context.Elections.ToListAsync();
+    return await context.Elections
+        .Select(e => new
+        {
+            e.ElectionId,
+            e.Name,
+        }).ToListAsync();
 });
 
-app.MapGet("/parties", async (ScalectionContext context) =>
+app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context, Guid electionId) =>
 {
     return await context.Parties
+        .Where(p => p.ElectionId == electionId)
         .Include(p => p.Candidates)
+        .Select(p => new
+        {
+            p.PartyId,
+            p.Name,
+            Candidates = p.Candidates.Select(c => new
+            {
+                c.CandidateId,
+                c.Name
+            })
+        })
         .ToListAsync();
 });
 

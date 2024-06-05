@@ -12,8 +12,8 @@ using Scalection.Data.EF;
 namespace Scalection.Data.EF.Migrations
 {
     [DbContext(typeof(ScalectionContext))]
-    [Migration("20240528160715_AddRemainingModels")]
-    partial class AddRemainingModels
+    [Migration("20240605072416_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,7 +25,7 @@ namespace Scalection.Data.EF.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Scalection.ApiService.Models.Candidate", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.Candidate", b =>
                 {
                     b.Property<Guid>("CandidateId")
                         .ValueGeneratedOnAdd()
@@ -45,7 +45,7 @@ namespace Scalection.Data.EF.Migrations
                     b.ToTable("Candidates");
                 });
 
-            modelBuilder.Entity("Scalection.ApiService.Models.Election", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.Election", b =>
                 {
                     b.Property<Guid>("ElectionId")
                         .ValueGeneratedOnAdd()
@@ -60,23 +60,26 @@ namespace Scalection.Data.EF.Migrations
                     b.ToTable("Elections");
                 });
 
-            modelBuilder.Entity("Scalection.ApiService.Models.ElectionDistrict", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.ElectionDistrict", b =>
                 {
-                    b.Property<Guid>("ElectionDistrictId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<long>("ElectionDistrictId")
+                        .HasColumnType("bigint");
 
                     b.Property<Guid>("ElectionId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ElectionDistrictId");
 
                     b.HasIndex("ElectionId");
 
-                    b.ToTable("ElectionDistrict");
+                    b.ToTable("ElectionDistricts");
                 });
 
-            modelBuilder.Entity("Scalection.ApiService.Models.Party", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.Party", b =>
                 {
                     b.Property<Guid>("PartyId")
                         .ValueGeneratedOnAdd()
@@ -96,7 +99,7 @@ namespace Scalection.Data.EF.Migrations
                     b.ToTable("Parties");
                 });
 
-            modelBuilder.Entity("Scalection.ApiService.Models.Vote", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.Vote", b =>
                 {
                     b.Property<Guid>("VoteId")
                         .ValueGeneratedOnAdd()
@@ -105,8 +108,8 @@ namespace Scalection.Data.EF.Migrations
                     b.Property<Guid?>("CandidateId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("ElectionDistrictId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<long>("ElectionDistrictId")
+                        .HasColumnType("bigint");
 
                     b.Property<Guid>("PartyId")
                         .HasColumnType("uniqueidentifier");
@@ -122,19 +125,16 @@ namespace Scalection.Data.EF.Migrations
 
                     b.HasIndex("PartyId");
 
-                    b.ToTable("Vote");
+                    b.ToTable("Votes");
                 });
 
-            modelBuilder.Entity("Scalection.ApiService.Models.Voter", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.Voter", b =>
                 {
                     b.Property<long>("VoterId")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("VoterId"));
-
-                    b.Property<Guid>("ElectionDistrictId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<long>("ElectionDistrictId")
+                        .HasColumnType("bigint");
 
                     b.Property<bool>("Voted")
                         .HasColumnType("bit");
@@ -143,30 +143,30 @@ namespace Scalection.Data.EF.Migrations
 
                     b.HasIndex("ElectionDistrictId");
 
-                    b.ToTable("Voter");
+                    b.ToTable("Voters");
                 });
 
-            modelBuilder.Entity("Scalection.ApiService.Models.Candidate", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.Candidate", b =>
                 {
-                    b.HasOne("Scalection.ApiService.Models.Party", null)
+                    b.HasOne("Scalection.Data.EF.Models.Party", null)
                         .WithMany("Candidates")
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Scalection.ApiService.Models.ElectionDistrict", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.ElectionDistrict", b =>
                 {
-                    b.HasOne("Scalection.ApiService.Models.Election", null)
+                    b.HasOne("Scalection.Data.EF.Models.Election", null)
                         .WithMany()
                         .HasForeignKey("ElectionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Scalection.ApiService.Models.Party", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.Party", b =>
                 {
-                    b.HasOne("Scalection.ApiService.Models.Election", "Election")
+                    b.HasOne("Scalection.Data.EF.Models.Election", "Election")
                         .WithMany()
                         .HasForeignKey("ElectionId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -175,36 +175,36 @@ namespace Scalection.Data.EF.Migrations
                     b.Navigation("Election");
                 });
 
-            modelBuilder.Entity("Scalection.ApiService.Models.Vote", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.Vote", b =>
                 {
-                    b.HasOne("Scalection.ApiService.Models.Candidate", null)
+                    b.HasOne("Scalection.Data.EF.Models.Candidate", null)
                         .WithMany()
                         .HasForeignKey("CandidateId")
                         .OnDelete(DeleteBehavior.Restrict);
 
-                    b.HasOne("Scalection.ApiService.Models.ElectionDistrict", null)
+                    b.HasOne("Scalection.Data.EF.Models.ElectionDistrict", null)
                         .WithMany()
                         .HasForeignKey("ElectionDistrictId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Scalection.ApiService.Models.Party", null)
+                    b.HasOne("Scalection.Data.EF.Models.Party", null)
                         .WithMany()
                         .HasForeignKey("PartyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Scalection.ApiService.Models.Voter", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.Voter", b =>
                 {
-                    b.HasOne("Scalection.ApiService.Models.ElectionDistrict", null)
+                    b.HasOne("Scalection.Data.EF.Models.ElectionDistrict", null)
                         .WithMany()
                         .HasForeignKey("ElectionDistrictId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Scalection.ApiService.Models.Party", b =>
+            modelBuilder.Entity("Scalection.Data.EF.Models.Party", b =>
                 {
                     b.Navigation("Candidates");
                 });
