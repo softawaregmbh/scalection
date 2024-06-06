@@ -1,5 +1,3 @@
-@hostname=apiservice--nkqbl72.prouddesert-65f8c27f.germanywestcentral.azurecontainerapps.io
-@port=443
 @electionId=af555808-063a-4eeb-9eb2-77090a2bff42 
 
 // Get elections
