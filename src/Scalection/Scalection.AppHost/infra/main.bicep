@@ -33,6 +33,14 @@ module resources 'resources.bicep' = {
   }
 }
 
+module appinsights 'appinsights/appinsights.module.bicep' = {
+  name: 'appinsights'
+  scope: rg
+  params: {
+    location: location
+    logAnalyticsWorkspaceId: resources.outputs.AZURE_LOG_ANALYTICS_WORKSPACE_ID
+  }
+}
 module sqlserver 'sqlserver/sqlserver.module.bicep' = {
   name: 'sqlserver'
   scope: rg
@@ -50,4 +58,5 @@ output AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = resources.outputs.A
 output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
 
+output APPINSIGHTS_APPINSIGHTSCONNECTIONSTRING string = appinsights.outputs.appInsightsConnectionString
 output SQLSERVER_SQLSERVERFQDN string = sqlserver.outputs.sqlServerFqdn

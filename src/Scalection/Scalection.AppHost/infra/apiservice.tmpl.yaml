@@ -21,6 +21,8 @@ properties:
       - server: {{ .Env.AZURE_CONTAINER_REGISTRY_ENDPOINT }}
         identity: {{ .Env.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}
     secrets:
+      - name: applicationinsights-connection-string
+        value: '{{ .Env.APPINSIGHTS_APPINSIGHTSCONNECTIONSTRING }}'
       - name: connectionstrings--sqldb
         value: Server=tcp:{{ .Env.SQLSERVER_SQLSERVERFQDN }},1433;Encrypt=True;Authentication="Active Directory Default";Database=sqldb
   template:
@@ -38,6 +40,8 @@ properties:
             value: "true"
           - name: OTEL_DOTNET_EXPERIMENTAL_OTLP_RETRY
             value: in_memory
+          - name: APPLICATIONINSIGHTS_CONNECTION_STRING
+            secretRef: applicationinsights-connection-string
           - name: ConnectionStrings__sqldb
             secretRef: connectionstrings--sqldb
     scale:
