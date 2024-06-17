@@ -1,17 +1,29 @@
 @electionId=af555808-063a-4eeb-9eb2-77090a2bff42 
 
+// *** Migrations ***
+
+POST {{migrationurl}}/sql/migrate
+
+###
+
+POST {{migrationurl}}/sql/reset/{{voters}}
+
+###
+
+// *** API ***
+
 // Get elections
-GET https://{{hostname}}:{{port}}/election
+GET {{apiurl}}/election
 
 ###
 
 // Get parties for election
-GET https://{{hostname}}:{{port}}/election/{{electionId}}/party
+GET {{apiurl}}/election/{{electionId}}/party
 
 ###
 
 // Vote for Party A and candidate A2
-POST https://{{hostname}}:{{port}}/vote
+POST {{{apiurl}}/vote
 Content-Type: application/json
 x-voter-id: 4711
 
@@ -23,7 +35,7 @@ x-voter-id: 4711
 ###
 
 // Vote with invalid candidate id
-POST https://{{hostname}}:{{port}}/vote
+POST {{{apiurl}}/vote
 Content-Type: application/json
 x-voter-id: 200000000
 
@@ -35,7 +47,7 @@ x-voter-id: 200000000
 ###
 
 // Vote for invalid Party A
-POST https://{{hostname}}:{{port}}/vote
+POST {{{apiurl}}/vote
 Content-Type: application/json
 x-voter-id: 4712
 
@@ -46,7 +58,7 @@ x-voter-id: 4712
 ###
 
 // Vote for Party A and candidate B1 (invalid)
-POST https://{{hostname}}:{{port}}/vote
+POST {{apiurl}}/vote
 Content-Type: application/json
 x-voter-id: 4712
 
