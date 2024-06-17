@@ -1,6 +1,7 @@
 using System.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Scalection.Data.EF;
 using Scalection.Data.EF.Models;
 using Scalection.ServiceDefaults;
@@ -14,11 +15,11 @@ builder.AddSqlServerDbContext<ScalectionContext>(ServiceDiscovery.SqlDB);
 
 // Add services to the container.
 builder.Services.AddProblemDetails();
-
 builder.Services.AddOutputCache(options =>
 {
     options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromHours(1)));
 });
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
@@ -67,11 +68,39 @@ app.MapPost("/vote", async (
     [FromHeader(Name = "x-voter-id")] long voterId,
     VoteDto dto,
     ScalectionContext context,
+    IMemoryCache cache,
     CancellationToken cancellationToken) =>
 {
     var strategy = context.Database.CreateExecutionStrategy();
     return await strategy.ExecuteAsync(async () =>
     {
+        var party = await cache.GetOrCreateAsync(
+            $"Party_{dto.PartyId}",
+            async cacheEntry =>
+            {
+                cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return await context.Parties.FindAsync(dto.PartyId);
+            });
+        if (party == null)
+        {
+            return Results.NotFound();
+        }
+
+        if (dto.CandidateId.HasValue)
+        {
+            var candidate = await cache.GetOrCreateAsync(
+                $"Candidate_{dto.CandidateId}_{dto.PartyId}",
+                async cacheEntry =>
+                {
+                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                    return await context.Candidates.SingleOrDefaultAsync(c => c.CandidateId == dto.CandidateId && c.PartyId == dto.PartyId);
+                });
+            if (candidate == null)
+            {
+                return Results.NotFound();
+            }
+        }
+
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
         var voter = await context.Voters.FindAsync(voterId);
@@ -86,19 +115,9 @@ app.MapPost("/vote", async (
             return Results.Conflict();
         }
 
-        var party = await context.Parties.SingleOrDefaultAsync(p => p.PartyId == dto.PartyId && p.ElectionId == voter.ElectionId);
-        if (party == null)
+        if (party.ElectionId != voter.ElectionId)
         {
             return Results.NotFound();
-        }
-
-        if (dto.CandidateId.HasValue)
-        {
-            var candidate = await context.Candidates.SingleOrDefaultAsync(c => c.CandidateId == dto.CandidateId && c.PartyId == dto.PartyId);
-            if (candidate == null)
-            {
-                return Results.NotFound();
-            }
         }
 
         await context.Votes.AddAsync(new Vote()

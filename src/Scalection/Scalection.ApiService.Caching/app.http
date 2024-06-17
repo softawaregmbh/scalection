@@ -23,7 +23,7 @@ GET {{apiurl}}/election/{{electionId}}/party
 ###
 
 // Vote for Party A and candidate A2
-POST {{{apiurl}}/vote
+POST {{apiurl}}/vote
 Content-Type: application/json
 x-voter-id: 4711
 
@@ -35,7 +35,7 @@ x-voter-id: 4711
 ###
 
 // Vote with invalid candidate id
-POST {{{apiurl}}/vote
+POST {{apiurl}}/vote
 Content-Type: application/json
 x-voter-id: 200000000
 
@@ -47,7 +47,7 @@ x-voter-id: 200000000
 ###
 
 // Vote for invalid Party A
-POST {{{apiurl}}/vote
+POST {{apiurl}}/vote
 Content-Type: application/json
 x-voter-id: 4712
 
