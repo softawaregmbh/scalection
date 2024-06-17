@@ -15,10 +15,17 @@ builder.AddSqlServerDbContext<ScalectionContext>(ServiceDiscovery.SqlDB);
 // Add services to the container.
 builder.Services.AddProblemDetails();
 
+builder.Services.AddOutputCache(options =>
+{
+    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromHours(1)));
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
+
+app.UseOutputCache();
 
 app.MapGet("/election", async (ScalectionContext context) =>
 {
@@ -32,7 +39,7 @@ app.MapGet("/election", async (ScalectionContext context) =>
            e.Name,
        }).ToListAsync();
     });
-});
+}).CacheOutput();
 
 app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context, Guid electionId) =>
 {
@@ -54,7 +61,7 @@ app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context,
             })
             .ToListAsync();
     });
-});
+}).CacheOutput();
 
 app.MapPost("/vote", async (
     [FromHeader(Name = "x-voter-id")] long voterId,
