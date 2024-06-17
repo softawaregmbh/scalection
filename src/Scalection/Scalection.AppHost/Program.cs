@@ -3,6 +3,7 @@ using Scalection.ServiceDefaults;
 var builder = DistributedApplication.CreateBuilder(args);
 
 var sqldb = builder.AddSqlServer(ServiceDiscovery.SqlServer)
+                   .WithDataVolume()
                    .PublishAsAzureSqlDatabase()
                    .AddDatabase(ServiceDiscovery.SqlDB);
 
