@@ -1,34 +1,23 @@
-using System.Data;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Scalection.Data.EF;
-using Scalection.Data.EF.Models;
+using Microsoft.Azure.Cosmos;
 using Scalection.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
-builder.AddSqlServerDbContext<ScalectionContext>(ServiceDiscovery.SqlDB);
+builder.AddAzureCosmosClient(ServiceDiscovery.CosmosDB);
 
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
-app.MapGet("/election", async (ScalectionContext context) =>
-{
-    var strategy = context.Database.CreateExecutionStrategy();
-    return await strategy.ExecuteAsync(async () =>
-    {
-        return await context.Elections
-       .Select(e => new
-       {
-           e.ElectionId,
-           e.Name,
-       }).ToListAsync();
-    });
+app.MapDefaultEndpoints();
+
+app.MapGet("/election", async (CosmosClient client) =>
+{    
+    return Results.Ok();
 });
 
 app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context, Guid electionId) =>
@@ -56,7 +45,7 @@ app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context,
 app.MapPost("/vote", async (
     [FromHeader(Name = "x-voter-id")] long voterId,
     VoteDto dto,
-    ScalectionContext context,
+    CosmosClient client,
     CancellationToken cancellationToken) =>
 {
     var strategy = context.Database.CreateExecutionStrategy();
@@ -109,8 +98,6 @@ app.MapPost("/vote", async (
         return Results.NoContent();
     });
 });
-
-app.MapDefaultEndpoints();
 
 app.Run();
 

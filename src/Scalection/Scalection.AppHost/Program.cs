@@ -2,19 +2,29 @@ using Scalection.ServiceDefaults;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
-var sqldb = builder.AddSqlServer(ServiceDiscovery.SqlServer)
+var sqlDB = builder.AddSqlServer(ServiceDiscovery.SqlServer)
                    .PublishAsAzureSqlDatabase()
                    .AddDatabase(ServiceDiscovery.SqlDB);
+
+var cosmosDB = builder.AddAzureCosmosDB(ServiceDiscovery.CosmosAccount)
+                      .AddDatabase(ServiceDiscovery.CosmosDB)
+                      .RunAsEmulator();
 
 var appInsights = builder.AddAzureApplicationInsights(ServiceDiscovery.ApplicationInsights);
 
 builder.AddProject<Projects.Scalection_ApiService>(ServiceDiscovery.ApiService)
-    .WithReference(sqldb)
+    .WithReference(sqlDB)
+    .WithReference(appInsights)
+    .WithExternalHttpEndpoints();
+
+builder.AddProject<Projects.Scalection_ApiService_Cosmos>(ServiceDiscovery.ApiServiceCosmosDB)
+    .WithReference(cosmosDB)
     .WithReference(appInsights)
     .WithExternalHttpEndpoints();
 
 builder.AddProject<Projects.Scalection_MigrationService>(ServiceDiscovery.MigrationService)
-    .WithReference(sqldb)
+    .WithReference(sqlDB)
     .WithReference(appInsights);
+
 
 builder.Build().Run();
