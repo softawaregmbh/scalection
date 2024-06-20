@@ -23,15 +23,13 @@ properties:
     secrets:
       - name: applicationinsights-connection-string
         value: '{{ .Env.APPINSIGHTS_APPINSIGHTSCONNECTIONSTRING }}'
-      - name: connectionstrings--sqldb
-        value: Server=tcp:{{ .Env.SQLSERVER_SQLSERVERFQDN }},1433;Encrypt=True;Authentication="Active Directory Default";Database=sqldb
       - name: connectionstrings--cosmosaccount
         keyVaultUrl: '{{ .Env.SERVICE_BINDING_KV9BA2EEC_ENDPOINT }}secrets/connectionString'
         identity: {{ .Env.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID }}
   template:
     containers:
       - image: {{ .Image }}
-        name: migrationservice
+        name: apiservicecosmosdb
         env:
           - name: AZURE_CLIENT_ID
             value: {{ .Env.MANAGED_IDENTITY_CLIENT_ID }}
@@ -45,12 +43,10 @@ properties:
             value: in_memory
           - name: APPLICATIONINSIGHTS_CONNECTION_STRING
             secretRef: applicationinsights-connection-string
-          - name: ConnectionStrings__sqldb
-            secretRef: connectionstrings--sqldb
           - name: ConnectionStrings__cosmosaccount
             secretRef: connectionstrings--cosmosaccount
     scale:
       minReplicas: 1
 tags:
-  azd-service-name: migrationservice
-  aspire-resource-name: migrationservice
+  azd-service-name: apiservicecosmosdb
+  aspire-resource-name: apiservicecosmosdb

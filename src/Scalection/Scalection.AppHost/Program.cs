@@ -8,8 +8,7 @@ var sqlDB = builder.AddSqlServer(ServiceDiscovery.SqlServer)
                    .AddDatabase(ServiceDiscovery.SqlDB);
 
 var cosmosDB = builder.AddAzureCosmosDB(ServiceDiscovery.CosmosAccount)
-                      .AddDatabase(ServiceDiscovery.CosmosDB)
-                      .RunAsEmulator();
+                      .AddDatabase(ServiceDiscovery.CosmosDB);
 
 var appInsights = builder.ExecutionContext.IsPublishMode
     ? builder.AddAzureApplicationInsights(ServiceDiscovery.ApplicationInsights)
@@ -27,6 +26,7 @@ builder.AddProject<Projects.Scalection_ApiService_Cosmos>(ServiceDiscovery.ApiSe
 
 builder.AddProject<Projects.Scalection_MigrationService>(ServiceDiscovery.MigrationService)
     .WithReference(sqlDB)
+    .WithReference(cosmosDB)
     .WithReference(appInsights)
     .WithExternalHttpEndpoints();
 

@@ -43,12 +43,13 @@ resource sqlDatabase_UE3hbDaNi 'Microsoft.Sql/servers/databases@2020-11-01-previ
   name: 'sqldb'
   location: location
   sku: {
-    name: 'HS_S_Gen5'
-    tier: 'Hyperscale'
+    name: 'GP_S_Gen5'
+    tier: 'GeneralPurpose'
     family: 'Gen5'
     capacity: 8
   }
   properties: {
+      autoPauseDelay: 60
   }
 }
 

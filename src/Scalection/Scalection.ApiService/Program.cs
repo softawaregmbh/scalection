@@ -53,8 +53,10 @@ app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context,
     });
 });
 
-app.MapPost("/vote", async (
+app.MapPost("election/{electionId:guid}/vote", async (
+    [FromHeader(Name = "x-election-district-id")] long electionDistrictId,
     [FromHeader(Name = "x-voter-id")] long voterId,
+    Guid electionId,
     VoteDto dto,
     ScalectionContext context,
     CancellationToken cancellationToken) =>
@@ -66,7 +68,7 @@ app.MapPost("/vote", async (
 
         var voter = await context.Voters.FindAsync(voterId);
 
-        if (voter == null)
+        if (voter == null || voter.ElectionId != electionId || voter.ElectionDistrictId != electionDistrictId)
         {
             return Results.Unauthorized();
         }
@@ -76,7 +78,7 @@ app.MapPost("/vote", async (
             return Results.Conflict();
         }
 
-        var party = await context.Parties.SingleOrDefaultAsync(p => p.PartyId == dto.PartyId && p.ElectionId == voter.ElectionId);
+        var party = await context.Parties.SingleOrDefaultAsync(p => p.PartyId == dto.PartyId && p.ElectionId == electionId);
         if (party == null)
         {
             return Results.NotFound();

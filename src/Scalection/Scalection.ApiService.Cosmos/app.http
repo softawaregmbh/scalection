@@ -2,15 +2,13 @@
 
 // *** Migrations ***
 
-POST {{migrationurl}}/sql/migrate
+POST {{migrationurl}}/cosmos/migrate
 
 ###
 
-POST {{migrationurl}}/sql/reset/{{voters}}
+POST {{migrationurl}}/cosmos/reset/{{voters}}
 
 ###
-
-// *** API ***
 
 // *** API ***
 

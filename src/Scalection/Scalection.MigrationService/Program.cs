@@ -1,17 +1,26 @@
 using System.Diagnostics;
-using Microsoft.AspNetCore.Builder;
+using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+using NGuid;
 using OpenTelemetry.Trace;
+using Scalection.Data.Cosmos;
 using Scalection.Data.EF;
-using Scalection.Data.EF.Models;
 using Scalection.ServiceDefaults;
+using CosmosModels = Scalection.Data.Cosmos.Models;
+using EFModels = Scalection.Data.EF.Models;
+
+const int NumberOfElectionDistricts = 10_000;
+const int NumberOfParties = 10;
+const int NumberOfCandidatesPerParty = 10;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddSqlServerDbContext<ScalectionContext>(ServiceDiscovery.SqlDB, s => s.CommandTimeout = (int)TimeSpan.FromMinutes(5).TotalSeconds);
+builder.AddCosmosClient(c => c.AllowBulkExecution = true);
+
 builder.Services.AddProblemDetails();
 
 var app = builder.Build();
@@ -83,40 +92,10 @@ app.MapPost("sql/reset/{voters:int}", async (ScalectionContext context, int vote
 
     async Task ResetDataAsync()
     {
-        Election election = new()
+        EFModels.Election election = new()
         {
-            ElectionId = Election.DemoElectionId,
-            Name = "EU Wahl 2024",
-        };
-        Party partyA = new()
-        {
-            PartyId = Guid.Parse("ba0161be-7ee6-4795-bb02-cb87a4103be1"),
-            Name = "Party A",
-            ElectionId = election.ElectionId,
-        };
-        Party partyB = new()
-        {
-            PartyId = Guid.Parse("8e1f28ef-f7a6-48a6-affc-84de83a60d88"),
-            Name = "Party B",
-            ElectionId = election.ElectionId,
-        };
-        Candidate candidateA1 = new()
-        {
-            CandidateId = Guid.Parse("7c16b002-6d9b-4867-943e-d7bf2b5d2b08"),
-            Name = "Candidate A1",
-            PartyId = partyA.PartyId,
-        };
-        Candidate candidateA2 = new()
-        {
-            CandidateId = Guid.Parse("501a1fcd-df4d-4fb9-828b-d3e0db31867e"),
-            Name = "Candidate A2",
-            PartyId = partyA.PartyId,
-        };
-        Candidate candidateB1 = new()
-        {
-            CandidateId = Guid.Parse("b4f6856c-d60d-44ff-802b-2d9efe3866a9"),
-            Name = "Candidate B1",
-            PartyId = partyB.PartyId,
+            ElectionId = EFModels.Election.DemoElectionId,
+            Name = "Scalection Demo Election",
         };
 
         var strategy = context.Database.CreateExecutionStrategy();
@@ -126,11 +105,26 @@ app.MapPost("sql/reset/{voters:int}", async (ScalectionContext context, int vote
             await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
             await AddOrUpdateAsync(election, e => e.ElectionId);
-            await AddOrUpdateAsync(partyA, p => p.PartyId);
-            await AddOrUpdateAsync(partyB, p => p.PartyId);
-            await AddOrUpdateAsync(candidateA1, c => c.CandidateId);
-            await AddOrUpdateAsync(candidateA2, c => c.CandidateId);
-            await AddOrUpdateAsync(candidateB1, c => c.CandidateId);
+
+            foreach (var party in GenerateItems("Party", NumberOfParties, election.ElectionId))
+            {
+                await AddOrUpdateAsync(new EFModels.Party
+                {
+                    ElectionId = election.ElectionId,
+                    PartyId = party.Id,
+                    Name = party.Name
+                }, p => p.PartyId);
+
+                foreach (var candidate in GenerateItems("Candidate", NumberOfCandidatesPerParty, party.Id))
+                {
+                    await AddOrUpdateAsync(new EFModels.Candidate
+                    {
+                        PartyId = party.Id,
+                        CandidateId = candidate.Id,
+                        Name = candidate.Name
+                    }, c => c.CandidateId);
+                }
+            }
 
             await context.SaveChangesAsync(cancellationToken);
 
@@ -141,13 +135,13 @@ app.MapPost("sql/reset/{voters:int}", async (ScalectionContext context, int vote
 
                 insert into ElectionDistricts(ElectionDistrictId, ElectionId, Name)
                 select value, @p0, 'District ' + CONVERT(varchar(5), value)
-                from GENERATE_SERIES(1, 10000);
+                from GENERATE_SERIES(1, @p1);
 
                 insert into Voters(VoterId, ElectionId, ElectionDistrictId, Voted)
-                select value, @p0, (value % 10000) + 1, 0
-                from GENERATE_SERIES(1, @p1);
+                select value, @p0, (value % @p1) + 1, 0
+                from GENERATE_SERIES(1, @p2);
                 """,
-                [election.ElectionId, voters],
+                [election.ElectionId, NumberOfElectionDistricts, voters],
                 cancellationToken);
 
             await transaction.CommitAsync(cancellationToken);
@@ -170,6 +164,122 @@ app.MapPost("sql/reset/{voters:int}", async (ScalectionContext context, int vote
     }
 });
 
+app.MapPost("cosmos/migrate", async (CosmosClient client, CancellationToken cancellationToken) =>
+{
+    using var activity = activitySource.StartActivity("Migrating Cosmos database", ActivityKind.Client);
+
+    try
+    {
+        await EnsureContainersAsync();
+    }
+    catch (Exception ex)
+    {
+        activity?.RecordException(ex);
+        throw;
+    }
+
+    async Task EnsureContainersAsync()
+    {
+        var database = client.GetDatabase(ServiceDiscovery.CosmosDB);
+        await database.CreateContainerIfNotExistsAsync(CosmosDB.ElectionContainerName, "/electionId");
+        await database.CreateContainerIfNotExistsAsync(CosmosDB.ElectionDistrictContainerName, "/partitionKey");
+    }
+});
+
+app.MapPost("cosmos/reset/{voters:int}", async (CosmosClient client, int voters, CancellationToken cancellationToken) =>
+{
+    using var activity = activitySource.StartActivity("Resetting Cosmos database", ActivityKind.Client);
+
+    try
+    {
+        return await ResetDataAsync();
+    }
+    catch (Exception ex)
+    {
+        activity?.RecordException(ex);
+        throw;
+    }
+
+    async Task<double> ResetDataAsync()
+    {
+        var electionContainer = client.ElectionContainer();
+        var electionDistrictContainer = client.ElectionDistrictContainer();
+
+        var totalRequestUnits = 0.0;
+
+        CosmosModels.Election election = new()
+        {
+            ElectionId = EFModels.Election.DemoElectionId,
+            Name = "Scalection Demo Election",
+        };
+
+        totalRequestUnits += (await electionContainer.UpsertItemAsync(election)).RequestCharge;
+
+        totalRequestUnits += await BulkUpsertAsync(
+            electionContainer,
+            GenerateItems("Party", NumberOfParties, election.ElectionId).Select(p =>
+                new CosmosModels.Party
+                {
+                    ElectionId = election.ElectionId,
+                    PartyId = p.Id,
+                    Name = p.Name,
+                    Candidates = GenerateItems("Candidate", NumberOfCandidatesPerParty, p.Id).Select(c =>
+                    new CosmosModels.Candidate
+                    {
+                        CandidateId = c.Id,
+                        Name = c.Name
+                    }).ToList()
+                }));
+
+
+        totalRequestUnits += await BulkUpsertAsync(
+            electionDistrictContainer,
+           GenerateItems("District", NumberOfElectionDistricts, election.ElectionId).Select(d =>
+            new CosmosModels.ElectionDistrict
+            {
+                ElectionId = election.ElectionId,
+                ElectionDistrictId = d.Number,
+                Name = d.Name
+            }));
+
+        totalRequestUnits += await BulkUpsertAsync(
+            electionDistrictContainer,
+            Enumerable.Range(1, voters).Select(i =>
+            new CosmosModels.Voter
+            {
+                ElectionId = election.ElectionId,
+                ElectionDistrictId = (i % NumberOfElectionDistricts) + 1,
+                VoterId = i,
+                Voted = false,
+            }));
+
+        return totalRequestUnits;
+
+        async Task<double> BulkUpsertAsync<T>(Container container, IEnumerable<T> items)
+        {
+            var tasks = items.Select(i => container.UpsertItemAsync(i, cancellationToken: cancellationToken)).ToList();
+
+            await Task.WhenAll(tasks);
+
+            return tasks.Sum(t => t.Result.RequestCharge);
+        }
+    }
+});
+
 app.MapDefaultEndpoints();
 
 app.Run();
+
+static IEnumerable<Item> GenerateItems(string namePrefix, int count, Guid namespaceGuid)
+{
+    var format = new string('0', count.ToString().Length);
+
+    for (int i = 1; i <= count; i++)
+    {
+        var name = $"{namePrefix} {i.ToString(format)}";
+        var id = GuidHelpers.CreateFromName(namespaceGuid, i.ToString());
+        yield return new Item(i, id, name);
+    }
+}
+
+record Item(int Number, Guid Id, string Name);

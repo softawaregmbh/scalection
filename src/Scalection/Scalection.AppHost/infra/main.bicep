@@ -41,6 +41,14 @@ module appinsights 'appinsights/appinsights.module.bicep' = {
     logAnalyticsWorkspaceId: resources.outputs.AZURE_LOG_ANALYTICS_WORKSPACE_ID
   }
 }
+module cosmosaccount 'cosmosaccount/cosmosaccount.module.bicep' = {
+  name: 'cosmosaccount'
+  scope: rg
+  params: {
+    keyVaultName: resources.outputs.SERVICE_BINDING_KV9BA2EEC_NAME
+    location: location
+  }
+}
 module sqlserver 'sqlserver/sqlserver.module.bicep' = {
   name: 'sqlserver'
   scope: rg
@@ -57,6 +65,7 @@ output AZURE_CONTAINER_REGISTRY_ENDPOINT string = resources.outputs.AZURE_CONTAI
 output AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID string = resources.outputs.AZURE_CONTAINER_REGISTRY_MANAGED_IDENTITY_ID
 output AZURE_CONTAINER_APPS_ENVIRONMENT_ID string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_ID
 output AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN string = resources.outputs.AZURE_CONTAINER_APPS_ENVIRONMENT_DEFAULT_DOMAIN
+output SERVICE_BINDING_KV9BA2EEC_ENDPOINT string = resources.outputs.SERVICE_BINDING_KV9BA2EEC_ENDPOINT
 
 output APPINSIGHTS_APPINSIGHTSCONNECTIONSTRING string = appinsights.outputs.appInsightsConnectionString
 output SQLSERVER_SQLSERVERFQDN string = sqlserver.outputs.sqlServerFqdn
