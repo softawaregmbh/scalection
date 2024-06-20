@@ -24,6 +24,7 @@ GET {{apiurl}}/election/{{electionId}}/party
 
 ###
 
+
 // Vote for Party 01 and candidate 01
 POST {{apiurl}}/election/{{electionId}}/vote
 Content-Type: application/json
@@ -47,6 +48,7 @@ x-election-district-id: 4713
 }
 
 ###
+
 
 // Vote with invalid election district id
 POST {{apiurl}}/election/{{electionId}}/vote

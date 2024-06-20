@@ -24,6 +24,11 @@ builder.AddProject<Projects.Scalection_ApiService_Cosmos>(ServiceDiscovery.ApiSe
     .WithReference(appInsights)
     .WithExternalHttpEndpoints();
 
+builder.AddProject<Projects.Scalection_ApiService_Caching>(ServiceDiscovery.ApiServiceWithCaching)
+    .WithReference(sqldb)
+    .WithReference(appInsights)
+    .WithExternalHttpEndpoints();
+
 builder.AddProject<Projects.Scalection_MigrationService>(ServiceDiscovery.MigrationService)
     .WithReference(sqlDB)
     .WithReference(cosmosDB)
