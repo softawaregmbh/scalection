@@ -1,0 +1,146 @@
+using System.Data;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
+using Scalection.Data.EF;
+using Scalection.Data.EF.Models;
+using Scalection.ServiceDefaults;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Add service defaults & Aspire components.
+builder.AddServiceDefaults();
+
+builder.AddSqlServerDbContext<ScalectionContext>(ServiceDiscovery.SqlDB);
+
+// Add services to the container.
+builder.Services.AddProblemDetails();
+builder.Services.AddOutputCache(options =>
+{
+    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromHours(1)));
+});
+builder.Services.AddMemoryCache();
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+app.UseExceptionHandler();
+
+app.UseOutputCache();
+
+app.MapGet("/election", async (ScalectionContext context) =>
+{
+    var strategy = context.Database.CreateExecutionStrategy();
+    return await strategy.ExecuteAsync(async () =>
+    {
+        return await context.Elections
+       .Select(e => new
+       {
+           e.ElectionId,
+           e.Name,
+       }).ToListAsync();
+    });
+}).CacheOutput();
+
+app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context, Guid electionId) =>
+{
+    var strategy = context.Database.CreateExecutionStrategy();
+    return await strategy.ExecuteAsync(async () =>
+    {
+        return await context.Parties
+            .Where(p => p.ElectionId == electionId)
+            .Include(p => p.Candidates)
+            .Select(p => new
+            {
+                p.PartyId,
+                p.Name,
+                Candidates = p.Candidates.Select(c => new
+                {
+                    c.CandidateId,
+                    c.Name
+                })
+            })
+            .ToListAsync();
+    });
+}).CacheOutput();
+
+app.MapPost("/vote", async (
+    [FromHeader(Name = "x-voter-id")] long voterId,
+    VoteDto dto,
+    ScalectionContext context,
+    IMemoryCache cache,
+    CancellationToken cancellationToken) =>
+{
+    var strategy = context.Database.CreateExecutionStrategy();
+    return await strategy.ExecuteAsync(async () =>
+    {
+        var party = await cache.GetOrCreateAsync(
+            $"Party_{dto.PartyId}",
+            async cacheEntry =>
+            {
+                cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                return await context.Parties.FindAsync(dto.PartyId);
+            });
+        if (party == null)
+        {
+            return Results.NotFound();
+        }
+
+        if (dto.CandidateId.HasValue)
+        {
+            var candidate = await cache.GetOrCreateAsync(
+                $"Candidate_{dto.CandidateId}_{dto.PartyId}",
+                async cacheEntry =>
+                {
+                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                    return await context.Candidates.SingleOrDefaultAsync(c => c.CandidateId == dto.CandidateId && c.PartyId == dto.PartyId);
+                });
+            if (candidate == null)
+            {
+                return Results.NotFound();
+            }
+        }
+
+        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+
+        var voter = await context.Voters.FindAsync(voterId);
+
+        if (voter == null)
+        {
+            return Results.Unauthorized();
+        }
+
+        if (voter.Voted)
+        {
+            return Results.Conflict();
+        }
+
+        if (party.ElectionId != voter.ElectionId)
+        {
+            return Results.NotFound();
+        }
+
+        await context.Votes.AddAsync(new Vote()
+        {
+            VoteId = Guid.NewGuid(),
+            PartyId = dto.PartyId,
+            CandidateId = dto.CandidateId,
+            ElectionDistrictId = voter.ElectionDistrictId,
+            Timestamp = DateTime.UtcNow
+        });
+
+        voter.Voted = true;
+
+        await context.SaveChangesAsync();
+
+        await transaction.CommitAsync(cancellationToken);
+
+        return Results.NoContent();
+    });
+});
+
+app.MapDefaultEndpoints();
+
+app.Run();
+
+record VoteDto(Guid PartyId, Guid? CandidateId);

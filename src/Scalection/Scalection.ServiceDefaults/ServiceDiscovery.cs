@@ -7,4 +7,5 @@ public static class ServiceDiscovery
     public const string ApiService = "apiservice";
     public const string MigrationService = "migrationservice";
     public const string ApplicationInsights = "appinsights";
+    public const string ApiServiceWithCaching = "apiservice-caching";
 }
