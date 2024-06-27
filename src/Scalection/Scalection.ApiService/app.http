@@ -6,17 +6,18 @@ POST {{migrationurl}}/sql/migrate
 
 ###
 
-POST {{migrationurl}}/sql/reset/{{voters}}
+POST {{migrationurl}}/sql/regenerate/{{voters}}
+
+###
+
+POST {{migrationurl}}/sql/reset-votes
 
 ###
 
 // *** API ***
 
-// *** API ***
-
 // Get elections
 GET {{apiurl}}/election
-
 ###
 
 // Get parties for election

@@ -6,7 +6,11 @@ POST {{migrationurl}}/cosmos/migrate
 
 ###
 
-POST {{migrationurl}}/cosmos/reset/{{voters}}
+POST {{migrationurl}}/cosmos/regenerate/{{voters}}
+
+###
+
+POST {{migrationurl}}/cosmos/reset-votes/{{voters}}
 
 ###
 

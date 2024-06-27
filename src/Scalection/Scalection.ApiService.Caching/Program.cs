@@ -8,17 +8,16 @@ using Scalection.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add service defaults & Aspire components.
 builder.AddServiceDefaults();
-
 builder.AddSqlServerDbContext<ScalectionContext>(ServiceDiscovery.SqlDB);
 
-// Add services to the container.
 builder.Services.AddProblemDetails();
+
 builder.Services.AddOutputCache(options =>
 {
     options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromHours(1)));
 });
+
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();
@@ -64,8 +63,10 @@ app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context,
     });
 }).CacheOutput();
 
-app.MapPost("/vote", async (
+app.MapPost("election/{electionId:guid}/vote", async (
+    [FromHeader(Name = "x-election-district-id")] long electionDistrictId,
     [FromHeader(Name = "x-voter-id")] long voterId,
+    Guid electionId,
     VoteDto dto,
     ScalectionContext context,
     IMemoryCache cache,
@@ -81,7 +82,8 @@ app.MapPost("/vote", async (
                 cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
                 return await context.Parties.FindAsync(dto.PartyId);
             });
-        if (party == null)
+
+        if (party == null || party.ElectionId != electionId)
         {
             return Results.NotFound();
         }
@@ -95,6 +97,7 @@ app.MapPost("/vote", async (
                     cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
                     return await context.Candidates.SingleOrDefaultAsync(c => c.CandidateId == dto.CandidateId && c.PartyId == dto.PartyId);
                 });
+
             if (candidate == null)
             {
                 return Results.NotFound();
@@ -105,7 +108,7 @@ app.MapPost("/vote", async (
 
         var voter = await context.Voters.FindAsync(voterId);
 
-        if (voter == null)
+        if (voter == null || voter.ElectionId != electionId || voter.ElectionDistrictId != electionDistrictId)
         {
             return Results.Unauthorized();
         }
@@ -113,11 +116,6 @@ app.MapPost("/vote", async (
         if (voter.Voted)
         {
             return Results.Conflict();
-        }
-
-        if (party.ElectionId != voter.ElectionId)
-        {
-            return Results.NotFound();
         }
 
         await context.Votes.AddAsync(new Vote()

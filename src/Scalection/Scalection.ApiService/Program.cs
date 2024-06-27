@@ -1,4 +1,5 @@
 using System.Data;
+//using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scalection.Data.EF;
@@ -6,6 +7,16 @@ using Scalection.Data.EF.Models;
 using Scalection.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
+
+//builder.Services.AddHttpLogging(logging =>
+//{
+//    logging.LoggingFields = HttpLoggingFields.All;
+//    logging.RequestHeaders.Add("x-voter-id");
+//    logging.RequestHeaders.Add("x-election-district-id");
+//    logging.RequestBodyLogLimit = 4096;
+//    logging.ResponseBodyLogLimit = 4096;
+//    logging.CombineLogs = true;
+//});
 
 builder.AddServiceDefaults();
 builder.AddSqlServerDbContext<ScalectionContext>(ServiceDiscovery.SqlDB);
@@ -16,6 +27,8 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 app.UseExceptionHandler();
+
+//app.UseHttpLogging();
 
 app.MapGet("/election", async (ScalectionContext context) =>
 {

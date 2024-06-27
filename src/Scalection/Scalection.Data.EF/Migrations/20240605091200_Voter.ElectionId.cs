@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
-using Scalection.Data.EF.Models;
+using Scalection.ServiceDefaults;
 
 #nullable disable
 
@@ -16,7 +16,7 @@ namespace Scalection.Data.EF.Migrations
                 table: "Voters",
                 type: "uniqueidentifier",
                 nullable: false,
-                defaultValue: Election.DemoElectionId);
+                defaultValue: DemoData.ElectionId);
         }
 
         /// <inheritdoc />

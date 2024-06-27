@@ -6,7 +6,11 @@ POST {{migrationurl}}/sql/migrate
 
 ###
 
-POST {{migrationurl}}/sql/reset/{{voters}}
+POST {{migrationurl}}/sql/regenerate/{{voters}}
+
+###
+
+POST {{migrationurl}}/sql/reset-votes
 
 ###
 
@@ -22,47 +26,62 @@ GET {{apiurl}}/election/{{electionId}}/party
 
 ###
 
-// Vote for Party A and candidate A2
-POST {{apiurl}}/vote
+
+// Vote for Party 01 and candidate 01
+POST {{apiurl}}/election/{{electionId}}/vote
+Content-Type: application/json
+x-voter-id: 4712
+x-election-district-id: 4713
+{
+  "partyId": "77948df2-a387-5efd-936a-9324a753c6e1",
+  "candidateId": "2996fe75-3a54-5bc8-b00b-3701cb494331"
+}
+
+###
+
+// Vote with invalid voter id
+POST {{apiurl}}/election/{{electionId}}/vote
+Content-Type: application/json
+x-voter-id: 20000000
+x-election-district-id: 4713
+{
+  "partyId": "77948df2-a387-5efd-936a-9324a753c6e1",
+  "candidateId": "2996fe75-3a54-5bc8-b00b-3701cb494331"
+}
+
+###
+
+
+// Vote with invalid election district id
+POST {{apiurl}}/election/{{electionId}}/vote
 Content-Type: application/json
 x-voter-id: 4711
-
+x-election-district-id: 4711
 {
-  "partyId": "ba0161be-7ee6-4795-bb02-cb87a4103be1",
-  "candidateId": "501a1fcd-df4d-4fb9-828b-d3e0db31867e"
+  "partyId": "77948df2-a387-5efd-936a-9324a753c6e1",
+  "candidateId": "2996fe75-3a54-5bc8-b00b-3701cb494331"
 }
 
 ###
 
-// Vote with invalid candidate id
-POST {{apiurl}}/vote
+// Vote for invalid party
+POST {{apiurl}}/election/{{electionId}}/vote
 Content-Type: application/json
-x-voter-id: 200000000
-
+x-voter-id: 4713
+x-election-district-id: 4714
 {
-  "partyId": "ba0161be-7ee6-4795-bb02-cb87a4103be1",
-  "candidateId": "501a1fcd-df4d-4fb9-828b-d3e0db31867e"
+  "partyId": "77948df2-a387-5efd-936a-9324a753c6e2",
+  "candidateId": "2996fe75-3a54-5bc8-b00b-3701cb494331"
 }
 
 ###
 
-// Vote for invalid Party A
-POST {{apiurl}}/vote
+// Vote for invalid candidate
+POST {{apiurl}}/election/{{electionId}}/vote
 Content-Type: application/json
-x-voter-id: 4712
-
+x-voter-id: 4713
+x-election-district-id: 4714
 {
-  "partyId": "ba0161be-7ee6-4795-bb02-cb87a4103be2"
-}
-
-###
-
-// Vote for Party A and candidate B1 (invalid)
-POST {{apiurl}}/vote
-Content-Type: application/json
-x-voter-id: 4712
-
-{
-  "partyId": "ba0161be-7ee6-4795-bb02-cb87a4103be1",
-  "candidateId": "b4f6856c-d60d-44ff-802b-2d9efe3866a9"
+  "partyId": "77948df2-a387-5efd-936a-9324a753c6e1",
+  "candidateId": "2996fe75-3a54-5bc8-b00b-3701cb494332"
 }

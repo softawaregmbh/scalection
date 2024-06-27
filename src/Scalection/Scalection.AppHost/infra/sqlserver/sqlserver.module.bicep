@@ -53,4 +53,24 @@ resource sqlDatabase_UE3hbDaNi 'Microsoft.Sql/servers/databases@2020-11-01-previ
   }
 }
 
+resource backupLongTermRetentionPolicy 'Microsoft.Sql/servers/databases/backupLongTermRetentionPolicies@2023-08-01-preview' = {
+  name: 'default'
+  parent: sqlDatabase_UE3hbDaNi
+  properties: {    
+    monthlyRetention: 'PT0S'
+    weeklyRetention: 'PT0S'
+    yearlyRetention: 'PT0S'
+    weekOfYear: 1
+  }
+}
+
+resource backupShortTermRetentionPolicy 'Microsoft.Sql/servers/databases/backupShortTermRetentionPolicies@2023-08-01-preview' = {
+  name: 'default'
+  parent: sqlDatabase_UE3hbDaNi
+  properties: {    
+    retentionDays: 1
+    diffBackupIntervalInHours: 24
+  }
+}
+
 output sqlServerFqdn string = sqlServer_YFcCarAEq.properties.fullyQualifiedDomainName

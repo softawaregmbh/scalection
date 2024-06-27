@@ -19,13 +19,13 @@ builder.AddProject<Projects.Scalection_ApiService>(ServiceDiscovery.ApiService)
     .WithReference(appInsights)
     .WithExternalHttpEndpoints();
 
-builder.AddProject<Projects.Scalection_ApiService_Cosmos>(ServiceDiscovery.ApiServiceCosmosDB)
+builder.AddProject<Projects.Scalection_ApiService_Cosmos>(ServiceDiscovery.ApiServiceWithCosmosDB)
     .WithReference(cosmosDB)
     .WithReference(appInsights)
     .WithExternalHttpEndpoints();
 
 builder.AddProject<Projects.Scalection_ApiService_Caching>(ServiceDiscovery.ApiServiceWithCaching)
-    .WithReference(sqldb)
+    .WithReference(sqlDB)
     .WithReference(appInsights)
     .WithExternalHttpEndpoints();
 
