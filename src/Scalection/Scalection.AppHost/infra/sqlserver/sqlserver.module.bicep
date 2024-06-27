@@ -46,7 +46,7 @@ resource sqlDatabase_UE3hbDaNi 'Microsoft.Sql/servers/databases@2020-11-01-previ
     name: 'GP_S_Gen5'
     tier: 'GeneralPurpose'
     family: 'Gen5'
-    capacity: 8
+    capacity: 4
   }
   properties: {
       autoPauseDelay: 60
