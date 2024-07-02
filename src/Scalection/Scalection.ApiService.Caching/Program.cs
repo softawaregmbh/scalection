@@ -22,7 +22,6 @@ builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
 app.UseOutputCache();
@@ -41,7 +40,7 @@ app.MapGet("/election", async (ScalectionContext context) =>
     });
 }).CacheOutput();
 
-app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context, Guid electionId) =>
+app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context, Guid electionId, CancellationToken cancellationToken) =>
 {
     var strategy = context.Database.CreateExecutionStrategy();
     return await strategy.ExecuteAsync(async () =>
@@ -59,7 +58,7 @@ app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context,
                     c.Name
                 })
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     });
 }).CacheOutput();
 
@@ -106,7 +105,7 @@ app.MapPost("election/{electionId:guid}/vote", async (
 
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
-        var voter = await context.Voters.FindAsync(voterId);
+        var voter = await context.Voters.FindAsync([voterId], cancellationToken);
 
         if (voter == null || voter.ElectionId != electionId || voter.ElectionDistrictId != electionDistrictId)
         {
@@ -125,11 +124,11 @@ app.MapPost("election/{electionId:guid}/vote", async (
             CandidateId = dto.CandidateId,
             ElectionDistrictId = voter.ElectionDistrictId,
             Timestamp = DateTime.UtcNow
-        });
+        }, cancellationToken);
 
         voter.Voted = true;
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
 

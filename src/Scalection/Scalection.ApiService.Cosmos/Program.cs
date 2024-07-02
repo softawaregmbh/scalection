@@ -1,6 +1,7 @@
 using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Caching.Memory;
 using Scalection.Data.Cosmos;
 using Scalection.Data.Cosmos.Models;
 
@@ -11,11 +12,18 @@ builder.AddCosmosClient();
 
 builder.Services.AddProblemDetails();
 
+builder.Services.AddOutputCache(options =>
+{
+    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromHours(1)));
+});
+
+builder.Services.AddMemoryCache();
+
 var app = builder.Build();
 
 app.UseExceptionHandler();
 
-app.MapDefaultEndpoints();
+app.UseOutputCache();
 
 app.MapGet("/election", (CosmosClient client, CancellationToken cancellationToken) =>
 {
@@ -25,7 +33,7 @@ app.MapGet("/election", (CosmosClient client, CancellationToken cancellationToke
             e.ElectionId,
             e.Name
         }).ToAsyncEnumerable(cancellationToken);
-});
+}).CacheOutput();
 
 app.MapGet("election/{electionId:guid}/party", (CosmosClient context, Guid electionId, CancellationToken cancellationToken) =>
 {
@@ -41,7 +49,7 @@ app.MapGet("election/{electionId:guid}/party", (CosmosClient context, Guid elect
                 c.Name
             })
         }).ToAsyncEnumerable(cancellationToken);
-});
+}).CacheOutput();
 
 app.MapPost("election/{electionId:guid}/vote", async (
     [FromHeader(Name = "x-election-district-id")] long electionDistrictId,
@@ -49,8 +57,42 @@ app.MapPost("election/{electionId:guid}/vote", async (
     Guid electionId,
     VoteDto dto,
     CosmosClient client,
+    IMemoryCache cache,
     CancellationToken cancellationToken) =>
 {
+    var party = await cache.GetOrCreateAsync(
+        $"Party_{dto.PartyId}",
+        async cacheEntry =>
+        {
+            cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+
+            try
+            {
+                var partyResponse = await client.ElectionContainer().ReadItemAsync<Party>(
+                    CosmosEntity.CreateId<Party>(dto.PartyId),
+                    new PartitionKey(electionId.ToString()));
+
+                return partyResponse.Resource;
+            }
+            catch (CosmosException e) when (e.StatusCode == HttpStatusCode.NotFound)
+            {
+                return null;
+            }
+        });
+
+    if (party == null || party.ElectionId != electionId)
+    {
+        return Results.NotFound();
+    }
+
+    if (dto.CandidateId.HasValue)
+    {
+        if (!party.Candidates.Any(c => c.CandidateId == dto.CandidateId))
+        {
+            return Results.NotFound();
+        }
+    }
+
     var cosmosVoterId = CosmosEntity.CreateId<Voter>(voterId);
     var partitionKey = new PartitionKey(ElectionDistrictEntity.CreatePartitionKey(electionId, electionDistrictId));
 
@@ -72,27 +114,6 @@ app.MapPost("election/{electionId:guid}/vote", async (
     if (voterResponse.Resource.Voted)
     {
         return Results.Conflict();
-    }
-
-    ItemResponse<Party> partyResponse;
-    try
-    {
-        partyResponse = await client.ElectionContainer().ReadItemAsync<Party>(
-            CosmosEntity.CreateId<Party>(dto.PartyId),
-            new PartitionKey(electionId.ToString()),
-            cancellationToken: cancellationToken);
-    }
-    catch (CosmosException e) when (e.StatusCode == HttpStatusCode.NotFound)
-    {
-        return Results.NotFound();
-    }
-
-    if (dto.CandidateId.HasValue)
-    {
-        if (!partyResponse.Resource.Candidates.Any(c => c.CandidateId == dto.CandidateId))
-        {
-            return Results.NotFound();
-        }
     }
 
     var transaction = electionDistrictContainer.CreateTransactionalBatch(partitionKey);
@@ -121,6 +142,8 @@ app.MapPost("election/{electionId:guid}/vote", async (
         ? Results.NoContent()
         : Results.Conflict();
 });
+
+app.MapDefaultEndpoints();
 
 app.Run();
 

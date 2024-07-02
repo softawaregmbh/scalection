@@ -1,5 +1,4 @@
 using System.Data;
-//using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Scalection.Data.EF;
@@ -8,16 +7,6 @@ using Scalection.ServiceDefaults;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddHttpLogging(logging =>
-//{
-//    logging.LoggingFields = HttpLoggingFields.All;
-//    logging.RequestHeaders.Add("x-voter-id");
-//    logging.RequestHeaders.Add("x-election-district-id");
-//    logging.RequestBodyLogLimit = 4096;
-//    logging.ResponseBodyLogLimit = 4096;
-//    logging.CombineLogs = true;
-//});
-
 builder.AddServiceDefaults();
 builder.AddSqlServerDbContext<ScalectionContext>(ServiceDiscovery.SqlDB);
 
@@ -25,12 +14,9 @@ builder.Services.AddProblemDetails();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 app.UseExceptionHandler();
 
-//app.UseHttpLogging();
-
-app.MapGet("/election", async (ScalectionContext context) =>
+app.MapGet("/election", async (ScalectionContext context, CancellationToken cancellationToken) =>
 {
     var strategy = context.Database.CreateExecutionStrategy();
     return await strategy.ExecuteAsync(async () =>
@@ -40,11 +26,11 @@ app.MapGet("/election", async (ScalectionContext context) =>
        {
            e.ElectionId,
            e.Name,
-       }).ToListAsync();
+       }).ToListAsync(cancellationToken);
     });
 });
 
-app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context, Guid electionId) =>
+app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context, Guid electionId, CancellationToken cancellationToken) =>
 {
     var strategy = context.Database.CreateExecutionStrategy();
     return await strategy.ExecuteAsync(async () =>
@@ -62,7 +48,7 @@ app.MapGet("election/{electionId:guid}/party", async (ScalectionContext context,
                     c.Name
                 })
             })
-            .ToListAsync();
+            .ToListAsync(cancellationToken);
     });
 });
 
@@ -77,9 +63,24 @@ app.MapPost("election/{electionId:guid}/vote", async (
     var strategy = context.Database.CreateExecutionStrategy();
     return await strategy.ExecuteAsync(async () =>
     {
+        var party = await context.Parties.SingleOrDefaultAsync(p => p.PartyId == dto.PartyId && p.ElectionId == electionId, cancellationToken);
+        if (party == null)
+        {
+            return Results.NotFound();
+        }
+
+        if (dto.CandidateId.HasValue)
+        {
+            var candidate = await context.Candidates.SingleOrDefaultAsync(c => c.CandidateId == dto.CandidateId && c.PartyId == dto.PartyId, cancellationToken);
+            if (candidate == null)
+            {
+                return Results.NotFound();
+            }
+        }
+
         await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
 
-        var voter = await context.Voters.FindAsync(voterId);
+        var voter = await context.Voters.FindAsync([voterId], cancellationToken);
 
         if (voter == null || voter.ElectionId != electionId || voter.ElectionDistrictId != electionDistrictId)
         {
@@ -91,21 +92,6 @@ app.MapPost("election/{electionId:guid}/vote", async (
             return Results.Conflict();
         }
 
-        var party = await context.Parties.SingleOrDefaultAsync(p => p.PartyId == dto.PartyId && p.ElectionId == electionId);
-        if (party == null)
-        {
-            return Results.NotFound();
-        }
-
-        if (dto.CandidateId.HasValue)
-        {
-            var candidate = await context.Candidates.SingleOrDefaultAsync(c => c.CandidateId == dto.CandidateId && c.PartyId == dto.PartyId);
-            if (candidate == null)
-            {
-                return Results.NotFound();
-            }
-        }
-
         await context.Votes.AddAsync(new Vote()
         {
             VoteId = Guid.NewGuid(),
@@ -113,11 +99,11 @@ app.MapPost("election/{electionId:guid}/vote", async (
             CandidateId = dto.CandidateId,
             ElectionDistrictId = voter.ElectionDistrictId,
             Timestamp = DateTime.UtcNow
-        });
+        }, cancellationToken);
 
         voter.Voted = true;
 
-        await context.SaveChangesAsync();
+        await context.SaveChangesAsync(cancellationToken);
 
         await transaction.CommitAsync(cancellationToken);
 

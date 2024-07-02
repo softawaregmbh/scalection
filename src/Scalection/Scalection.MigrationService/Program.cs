@@ -331,7 +331,7 @@ app.MapPost("cosmos/regenerate/{voters:int}", async (CosmosClient client, int vo
     }
 });
 
-app.MapPost("cosmos/reset-votes/{voters:int}", async (CosmosClient client, int voters, CancellationToken cancellationToken) =>
+app.MapPost("cosmos/reset-votes/{from:int}/{to:int}", async (CosmosClient client, int from, int to, CancellationToken cancellationToken) =>
 {
     using var activity = activitySource.StartActivity("Resetting votes in Cosmos database", ActivityKind.Client);
 
@@ -351,7 +351,7 @@ app.MapPost("cosmos/reset-votes/{voters:int}", async (CosmosClient client, int v
 
         var totalRequestUnits = 0.0;
 
-        foreach (var chunk in Enumerable.Range(1, voters).Chunk(BatchSize))
+        foreach (var chunk in Enumerable.Range(from, to - from).Chunk(BatchSize))
         {
             var tasks = chunk.Select(i => electionDistrictContainer.PatchItemAsync<Voter>(
                 CosmosEntity.CreateId<Voter>(i),
@@ -362,6 +362,9 @@ app.MapPost("cosmos/reset-votes/{voters:int}", async (CosmosClient client, int v
             .ToList();
 
             await Task.WhenAll(tasks);
+
+            Debug.WriteLine(chunk.Last());
+
             totalRequestUnits += tasks.Sum(t => t.Result.RequestCharge);
         }
 
