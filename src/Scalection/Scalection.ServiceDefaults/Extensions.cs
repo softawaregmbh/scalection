@@ -1,6 +1,7 @@
 using Azure.Monitor.OpenTelemetry.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -31,6 +32,23 @@ public static class Extensions
             // Turn on service discovery by default
             http.AddServiceDiscovery();
         });
+
+        return builder;
+    }
+
+    public static IHostApplicationBuilder AddCosmosClient(this IHostApplicationBuilder builder, Action<CosmosClientOptions> configure = null)
+    {
+        builder.AddAzureCosmosClient(
+            Scalection.ServiceDefaults.ServiceDiscovery.CosmosAccount,
+            configureClientOptions: c =>
+            {
+                c.SerializerOptions = new CosmosSerializationOptions()
+                {
+                    PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
+                };
+
+                configure?.Invoke(c);
+            });
 
         return builder;
     }

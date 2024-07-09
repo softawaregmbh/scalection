@@ -1,21 +1,33 @@
 using System.Diagnostics;
+using Microsoft.Azure.Cosmos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
 using NGuid;
 using OpenTelemetry.Trace;
+using Scalection.Data.Cosmos;
+using Scalection.Data.Cosmos.Models;
 using Scalection.Data.EF;
 using Scalection.ServiceDefaults;
+using CosmosModels = Scalection.Data.Cosmos.Models;
 using EFModels = Scalection.Data.EF.Models;
 
 const int NumberOfElectionDistricts = 10_000;
 const int NumberOfParties = 10;
 const int NumberOfCandidatesPerParty = 10;
+const int BatchSize = 10_000;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddServiceDefaults();
 builder.AddSqlServerDbContext<ScalectionContext>(ServiceDiscovery.SqlDB, s => s.CommandTimeout = (int)TimeSpan.FromMinutes(10).TotalSeconds);
+builder.AddCosmosClient(c =>
+{
+    c.AllowBulkExecution = true;
+    c.MaxRetryAttemptsOnRateLimitedRequests = null;
+    c.MaxRetryWaitTimeOnRateLimitedRequests = null;
+    c.GatewayModeMaxConnectionLimit = 1000;
+});
 
 builder.Services.AddProblemDetails();
 
@@ -199,6 +211,165 @@ app.MapPost("sql/reset-votes", async (ScalectionContext context, CancellationTok
 
             await transaction.CommitAsync(cancellationToken);
         });
+    }
+});
+
+app.MapPost("cosmos/migrate", async (CosmosClient client, CancellationToken cancellationToken) =>
+{
+    using var activity = activitySource.StartActivity("Migrating Cosmos database", ActivityKind.Client);
+
+    try
+    {
+        await EnsureContainersAsync();
+    }
+    catch (Exception ex)
+    {
+        activity?.RecordException(ex);
+        throw;
+    }
+
+    async Task EnsureContainersAsync()
+    {
+        var database = client.GetDatabase(ServiceDiscovery.CosmosDB);
+        await database.CreateContainerIfNotExistsAsync(CosmosDB.ElectionContainerName, "/electionId", cancellationToken: cancellationToken);
+        await database.CreateContainerIfNotExistsAsync(new ContainerProperties(CosmosDB.ElectionDistrictContainerName, "/partitionKey") { DefaultTimeToLive = -1 }, cancellationToken: cancellationToken);
+    }
+});
+
+app.MapPost("cosmos/regenerate/{voters:int}", async (CosmosClient client, int voters, CancellationToken cancellationToken) =>
+{
+    using var activity = activitySource.StartActivity("Regenerating data in Cosmos database", ActivityKind.Client);
+
+    try
+    {
+        return await RegenerateDataAsync();
+    }
+    catch (Exception ex)
+    {
+        activity?.RecordException(ex);
+        throw;
+    }
+
+    async Task<double> RegenerateDataAsync()
+    {
+        var electionContainer = client.ElectionContainer();
+        var electionDistrictContainer = client.ElectionDistrictContainer();
+
+        var totalRequestUnits = 0.0;
+
+        CosmosModels.Election election = new()
+        {
+            ElectionId = DemoData.ElectionId,
+            Name = "Scalection Demo Election",
+        };
+
+        totalRequestUnits += (await electionContainer.UpsertItemAsync(election)).RequestCharge;
+
+        totalRequestUnits += await BulkUpsertAsync(
+            electionContainer,
+            GenerateItems("Party", NumberOfParties, election.ElectionId).Select(p =>
+                new CosmosModels.Party
+                {
+                    ElectionId = election.ElectionId,
+                    PartyId = p.Id,
+                    Name = p.Name,
+                    Candidates = GenerateItems("Candidate", NumberOfCandidatesPerParty, p.Id).Select(c =>
+                    new CosmosModels.Candidate
+                    {
+                        CandidateId = c.Id,
+                        Name = c.Name
+                    }).ToList()
+                }));
+
+
+        totalRequestUnits += await BulkUpsertAsync(
+            electionDistrictContainer,
+            GenerateItems("District", NumberOfElectionDistricts, election.ElectionId).Select(d =>
+            new CosmosModels.ElectionDistrict
+            {
+                ElectionId = election.ElectionId,
+                ElectionDistrictId = d.Number,
+                Name = d.Name
+            }));
+
+        totalRequestUnits += await BulkUpsertAsync(
+            electionDistrictContainer,
+            Enumerable.Range(1, voters).Select(i =>
+            new CosmosModels.Voter
+            {
+                ElectionId = election.ElectionId,
+                ElectionDistrictId = GetElectionDistrictId(i),
+                VoterId = i,
+                Voted = false,
+            }));
+
+        return totalRequestUnits;
+
+        async Task<double> BulkUpsertAsync<T>(Container container, IEnumerable<T> items)
+        {
+            var sum = 0.0;
+            int c = 0;
+            foreach (var chunk in items.Chunk(BatchSize))
+            {
+                var tasks = chunk.Select(i => container.UpsertItemAsync(
+                    i,
+                    null,
+                    new ItemRequestOptions() { EnableContentResponseOnWrite = false },
+                    cancellationToken))
+                .ToList();
+
+                await Task.WhenAll(tasks);
+
+                c++;
+                Debug.WriteLine(c * BatchSize);
+
+                sum += tasks.Sum(t => t.Result.RequestCharge);
+            }
+
+            return sum;
+        }
+    }
+});
+
+app.MapPost("cosmos/reset-votes/{from:int}/{to:int}", async (CosmosClient client, int from, int to, CancellationToken cancellationToken) =>
+{
+    using var activity = activitySource.StartActivity("Resetting votes in Cosmos database", ActivityKind.Client);
+
+    try
+    {
+        return await ResetVotesAsync();
+    }
+    catch (Exception ex)
+    {
+        activity?.RecordException(ex);
+        throw;
+    }
+
+    async Task<double> ResetVotesAsync()
+    {
+        var electionDistrictContainer = client.ElectionDistrictContainer();
+
+        var totalRequestUnits = 0.0;
+
+        foreach (var chunk in Enumerable.Range(from, to - from).Chunk(BatchSize))
+        {
+            var tasks = chunk.Select(i => electionDistrictContainer.PatchItemAsync<Voter>(
+                CosmosEntity.CreateId<Voter>(i),
+                new PartitionKey(ElectionDistrictEntity.CreatePartitionKey(DemoData.ElectionId, GetElectionDistrictId(i))),
+                [PatchOperation.Set("/voted", false)],
+                new PatchItemRequestOptions() { EnableContentResponseOnWrite = false },
+                cancellationToken))
+            .ToList();
+
+            await Task.WhenAll(tasks);
+
+            Debug.WriteLine(chunk.Last());
+
+            totalRequestUnits += tasks.Sum(t => t.Result.RequestCharge);
+        }
+
+
+        return totalRequestUnits;
     }
 });
 
