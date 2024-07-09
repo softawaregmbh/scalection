@@ -16,6 +16,11 @@ builder.AddProject<Projects.Scalection_ApiService>(ServiceDiscovery.ApiService)
     .WithReference(appInsights)
     .WithExternalHttpEndpoints();
 
+builder.AddProject<Projects.Scalection_ApiService_Caching>(ServiceDiscovery.ApiServiceWithCaching)
+    .WithReference(sqlDB)
+    .WithReference(appInsights)
+    .WithExternalHttpEndpoints();
+
 builder.AddProject<Projects.Scalection_MigrationService>(ServiceDiscovery.MigrationService)
     .WithReference(sqlDB)
     .WithReference(appInsights)

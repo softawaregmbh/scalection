@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Scalection.ApiService\Scalection.ApiService.csproj" />
+    <ProjectReference Include="..\Scalection.ApiService.Caching\Scalection.ApiService.Caching.csproj" />
     <ProjectReference Include="..\Scalection.MigrationService\Scalection.MigrationService.csproj" />
     <ProjectReference Include="..\Scalection.ServiceDefaults\Scalection.ServiceDefaults.csproj" IsAspireProjectResource="false" />
   </ItemGroup>

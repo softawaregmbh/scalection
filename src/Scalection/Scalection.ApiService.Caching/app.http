@@ -1,0 +1,87 @@
+@electionId=af555808-063a-4eeb-9eb2-77090a2bff42 
+
+// *** Migrations ***
+
+POST {{migrationurl}}/sql/migrate
+
+###
+
+POST {{migrationurl}}/sql/regenerate/{{voters}}
+
+###
+
+POST {{migrationurl}}/sql/reset-votes
+
+###
+
+// *** API ***
+
+// Get elections
+GET {{apiurl}}/election
+
+###
+
+// Get parties for election
+GET {{apiurl}}/election/{{electionId}}/party
+
+###
+
+
+// Vote for Party 01 and candidate 01
+POST {{apiurl}}/election/{{electionId}}/vote
+Content-Type: application/json
+x-voter-id: 4712
+x-election-district-id: 4713
+{
+  "partyId": "77948df2-a387-5efd-936a-9324a753c6e1",
+  "candidateId": "2996fe75-3a54-5bc8-b00b-3701cb494331"
+}
+
+###
+
+// Vote with invalid voter id
+POST {{apiurl}}/election/{{electionId}}/vote
+Content-Type: application/json
+x-voter-id: 20000000
+x-election-district-id: 4713
+{
+  "partyId": "77948df2-a387-5efd-936a-9324a753c6e1",
+  "candidateId": "2996fe75-3a54-5bc8-b00b-3701cb494331"
+}
+
+###
+
+
+// Vote with invalid election district id
+POST {{apiurl}}/election/{{electionId}}/vote
+Content-Type: application/json
+x-voter-id: 4711
+x-election-district-id: 4711
+{
+  "partyId": "77948df2-a387-5efd-936a-9324a753c6e1",
+  "candidateId": "2996fe75-3a54-5bc8-b00b-3701cb494331"
+}
+
+###
+
+// Vote for invalid party
+POST {{apiurl}}/election/{{electionId}}/vote
+Content-Type: application/json
+x-voter-id: 4713
+x-election-district-id: 4714
+{
+  "partyId": "77948df2-a387-5efd-936a-9324a753c6e2",
+  "candidateId": "2996fe75-3a54-5bc8-b00b-3701cb494331"
+}
+
+###
+
+// Vote for invalid candidate
+POST {{apiurl}}/election/{{electionId}}/vote
+Content-Type: application/json
+x-voter-id: 4713
+x-election-district-id: 4714
+{
+  "partyId": "77948df2-a387-5efd-936a-9324a753c6e1",
+  "candidateId": "2996fe75-3a54-5bc8-b00b-3701cb494332"
+}
