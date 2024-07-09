@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="Scalection.Data.EF.Models.Candidate">
+    <Position X="7" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACAAAAAAAAAAAAAAAAAQEAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Candidate.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Scalection.Data.EF.Models.Election">
+    <Position X="3" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Election.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Scalection.Data.EF.Models.ElectionDistrict">
+    <Position X="3" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAAAAAAAAgAAAAAAQAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\ElectionDistrict.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Scalection.Data.EF.Models.Party">
+    <Position X="5" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAIAAAAAAAAAAAAAAAAQEAAAAICAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Party.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Scalection.Data.EF.Models.Vote">
+    <Position X="7" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAACAAAAAAAAAAgAAACAAAEAAAgAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Vote.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="Scalection.Data.EF.Models.Voter">
+    <Position X="5" Y="3" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AABAAIAAAAAAAAAgEAAAAAAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\Voter.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
