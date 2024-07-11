@@ -103,7 +103,7 @@ app.MapPost("election/{electionId:guid}/vote", async (
             }
         }
 
-        await using var transaction = await context.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await context.Database.BeginTransactionAsync(IsolationLevel.RepeatableRead, cancellationToken);
 
         var voter = await context.Voters.FindAsync([voterId], cancellationToken);
 
