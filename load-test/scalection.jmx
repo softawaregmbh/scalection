@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testname="Test Plan">
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="domain" elementType="Argument">
+            <stringProp name="Argument.name">domain</stringProp>
+            <stringProp name="Argument.value">${__BeanShell( System.getenv(&quot;domain&quot;) )}</stringProp>
+            <stringProp name="Argument.metadata"></stringProp>
+            <stringProp name="Argument.desc">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+    </TestPlan>
+    <hashTree>
+      <kg.apc.jmeter.threads.UltimateThreadGroup guiclass="kg.apc.jmeter.threads.UltimateThreadGroupGui" testname="requestGroup1" enabled="true">
+        <stringProp name="testclass">kg.apc.jmeter.threads.UltimateThreadGroup</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController">
+          <stringProp name="LoopController.loops">${__P(iterations,-1)}</stringProp>
+          <stringProp name="testname">LoopController</stringProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+        <collectionProp name="ultimatethreadgroupdata">
+          <!--<collectionProp name="ThreadSchedule1">
+            <stringProp name="threadsnum">100</stringProp>
+            <stringProp name="initdelay">0</stringProp>
+            <stringProp name="startime">100</stringProp>
+            <stringProp name="holdload">60</stringProp>
+            <stringProp name="shutdown"></stringProp>
+          </collectionProp>-->
+           <collectionProp name="ThreadSchedule1">
+            <stringProp name="threadsnum">25</stringProp>
+            <stringProp name="initdelay">0</stringProp>
+            <stringProp name="startime"></stringProp>
+            <stringProp name="holdload">300</stringProp>
+            <stringProp name="shutdown"></stringProp>
+          </collectionProp>
+          <collectionProp name="ThreadSchedule2">
+            <stringProp name="threadsnum">25</stringProp>
+            <stringProp name="initdelay">60</stringProp>
+            <stringProp name="startime"></stringProp>
+            <stringProp name="holdload">240</stringProp>
+            <stringProp name="shutdown"></stringProp>
+          </collectionProp>
+          <collectionProp name="ThreadSchedule3">
+            <stringProp name="threadsnum">25</stringProp>
+            <stringProp name="initdelay">120</stringProp>
+            <stringProp name="startime"></stringProp>
+            <stringProp name="holdload">180</stringProp>
+            <stringProp name="shutdown"></stringProp>
+          </collectionProp>
+          <collectionProp name="ThreadSchedule4">
+            <stringProp name="threadsnum">25</stringProp>
+            <stringProp name="initdelay">180</stringProp>
+            <stringProp name="startime"></stringProp>
+            <stringProp name="holdload">120</stringProp>
+            <stringProp name="shutdown"></stringProp>
+          </collectionProp>
+        </collectionProp>
+      </kg.apc.jmeter.threads.UltimateThreadGroup>
+      <hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testname="GET Parties">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <stringProp name="HTTPSampler.path">/election/af555808-063a-4eeb-9eb2-77090a2bff42/party</stringProp>
+          <stringProp name="HTTPSampler.domain">${domain}</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <elementProp name="HTTPSampler.header_manager" elementType="HeaderManager" guiclass="HeaderPanel" testname="HTTP HeaderManager">
+            <collectionProp name="HeaderManager.headers"/>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testname="HTTP HeaderManager">
+            <collectionProp reference="../../../HTTPSamplerProxy/elementProp[2]/collectionProp"/>
+          </HeaderManager>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testname="POST Vote">
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+  &quot;partyId&quot;: &quot;77948df2-a387-5efd-936a-9324a753c6e1&quot;,&#xd;
+  &quot;candidateId&quot;: &quot;2996fe75-3a54-5bc8-b00b-3701cb494331&quot;&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata"></stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+          <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <stringProp name="HTTPSampler.path">/election/af555808-063a-4eeb-9eb2-77090a2bff42/vote</stringProp>
+          <stringProp name="HTTPSampler.domain">${domain}</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <elementProp name="HTTPSampler.header_manager" elementType="HeaderManager" guiclass="HeaderPanel" testname="HTTP HeaderManager">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="x-voter-id" elementType="Header">
+                <stringProp name="Header.name">x-voter-id</stringProp>
+                <stringProp name="Header.value">${voter-id}</stringProp>
+              </elementProp>
+              <elementProp name="x-election-district-id" elementType="Header">
+                <stringProp name="Header.name">x-election-district-id</stringProp>
+                <stringProp name="Header.value">${election-district-id}</stringProp>
+              </elementProp>
+              <elementProp name="content-type" elementType="Header">
+                <stringProp name="Header.name">content-type</stringProp>
+                <stringProp name="Header.value">application/json</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testname="HTTP HeaderManager">
+            <collectionProp reference="../../../HTTPSamplerProxy[2]/elementProp[2]/collectionProp"/>
+          </HeaderManager>
+          <hashTree/>
+        </hashTree>
+        <CSVDataSet guiclass="TestBeanGUI" testname="CSV Data Set Config">
+          <stringProp name="filename">scalection.csv</stringProp>
+          <stringProp name="variableNames">voter-id,election-district-id</stringProp>
+          <boolProp name="ignoreFirstLine">false</boolProp>
+          <stringProp name="delimiter">,</stringProp>
+          <boolProp name="quotedData">false</boolProp>
+          <boolProp name="recycle">true</boolProp>
+          <boolProp name="stopThread">false</boolProp>
+          <stringProp name="shareMode">shareMode.all</stringProp>
+        </CSVDataSet>
+        <hashTree/>
+      </hashTree>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>
