@@ -2,7 +2,7 @@
 
 This repository contains the source code for the blog series
 
-## [Building a scaleable web application with ASP.NET Core and Azure](https://softaware.at/codeaware/building-a-scalable-web-application-with-asp-net-core-and-azure-1/)
+## [Building a scalable web application with ASP.NET Core and Azure](https://softaware.at/codeaware/building-a-scalable-web-application-with-asp-net-core-and-azure-1/)
 
 It contains a sample implementation of an electronic voting system as a showcase for how we can build scalable web applications using .NET and Azure.
 
