@@ -15,7 +15,7 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddOutputCache(options =>
 {
-    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromHours(1)));
+    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromHours(8)));
 });
 
 builder.Services.AddMemoryCache();
@@ -78,7 +78,7 @@ app.MapPost("election/{electionId:guid}/vote", async (
             $"Party_{dto.PartyId}",
             async cacheEntry =>
             {
-                cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(8);
                 return await context.Parties.FindAsync(dto.PartyId);
             });
 
@@ -93,7 +93,7 @@ app.MapPost("election/{electionId:guid}/vote", async (
                 $"Candidate_{dto.CandidateId}_{dto.PartyId}",
                 async cacheEntry =>
                 {
-                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+                    cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(8);
                     return await context.Candidates.SingleOrDefaultAsync(c => c.CandidateId == dto.CandidateId && c.PartyId == dto.PartyId);
                 });
 
