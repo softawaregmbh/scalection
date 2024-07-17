@@ -14,7 +14,7 @@ builder.Services.AddProblemDetails();
 
 builder.Services.AddOutputCache(options =>
 {
-    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromHours(1)));
+    options.AddBasePolicy(builder => builder.Expire(TimeSpan.FromHours(8)));
 });
 
 builder.Services.AddMemoryCache();
@@ -64,7 +64,7 @@ app.MapPost("election/{electionId:guid}/vote", async (
         $"Party_{dto.PartyId}",
         async cacheEntry =>
         {
-            cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1);
+            cacheEntry.AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(8);
 
             try
             {
