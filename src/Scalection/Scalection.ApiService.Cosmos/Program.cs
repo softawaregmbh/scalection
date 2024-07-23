@@ -35,9 +35,9 @@ app.MapGet("/election", (CosmosClient client, CancellationToken cancellationToke
         }).ToAsyncEnumerable(cancellationToken);
 }).CacheOutput();
 
-app.MapGet("election/{electionId:guid}/party", (CosmosClient context, Guid electionId, CancellationToken cancellationToken) =>
+app.MapGet("election/{electionId:guid}/party", (CosmosClient client, Guid electionId, CancellationToken cancellationToken) =>
 {
-    return context.Parties()
+    return client.Parties()
         .Where(p => p.ElectionId == electionId)
         .Select(p => new
         {
